@@ -47,9 +47,73 @@ app.get('/users/:id', async (req, res) => {
             res.status(404).send({ error: 'User not found' })
         }
     } catch (error) {
-        res.status(400).send({ error: 'Error' })
+        //@ts-ignore
+        res.status(400).send({ error: error.message })
     }
 })
+
+
+app.post('/items', async (req, res) => {
+    const { title, image } = req.body
+    try {
+        const newItem = await prisma.item.create({
+            data: {
+                title,
+                image
+            }
+        })
+        res.send(newItem)
+    }
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send({ error: error.message })
+    }
+})
+
+
+app.post('/orders', async (req, res) => {
+    const { quantity, userId, itemId } = req.body
+    try {
+        const newOrder = await prisma.order.create({
+            data: { quantity, userId, itemId }
+        })
+        res.send(newOrder)
+    }
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send({ error: error.message })
+    }
+})
+
+app.patch('/users/:id', async (req, res) => {
+    const { name, email } = req.body
+    const id = Number(req.params.id)
+    try {
+        const user = await prisma.user.update({
+            where: { id },
+            data: { name: name, email: email },
+            include: { order: { include: { user: true } } }
+        })
+        res.send(user)
+    }
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send({ error: error.message })
+    }
+})
+
+app.delete('/orders/:id', async (req, res) => {
+    const id = Number(req.params.id)
+    try {
+        const order = await prisma.order.delete({ where: { id: id } })
+        res.send(order)
+    }
+    catch (error) {
+        //@ts-ignore
+        res.status(400).send({ error: error.message })
+    }
+})
+
 
 app.listen(4000, () => {
     console.log('Server running: http://localhost:4000')
